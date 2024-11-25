@@ -17,23 +17,23 @@
         "CodeServices": [
             {
                 "Level": 1,
-                "Name": "{{component_prefix}}_install"
+                "Name": "cb_install"
             },
             {
                 "Level": 1,
-                "Name": "{{component_prefix}}_setup"
+                "Name": "cb_setup"
             },
             {
                 "Level": 1,
-                "Name": "{{component_prefix}}_teardown"
+                "Name": "cb_teardown"
             },
             {
                 "Level": 1,
-                "Name": "{{component_prefix}}_uninstall"
+                "Name": "cb_uninstall"
             },
             {
                 "Level": 1,
-                "Name": "{{component_prefix}}_update"
+                "Name": "cb_update"
             }
         ],
         "Collections": [],

@@ -4,9 +4,8 @@
  * @param {CbServer.Resp} resp
  */
 
-function {{component_prefix}}_install(req, resp) {
+function cb_update(req, resp) {
   const params = req.params;
-  const mfe_settings = params.mfe_settings;
-  //component install behavior here. Initialize an instance of the component for use
+  //component update behavior here. Allow the user to update an instance of the component
   resp.success('Success');
 }

@@ -4,8 +4,8 @@
  * @param {CbServer.Resp} resp
  */
 
-function {{component_prefix}}_setup(req, resp) {
+function cb_uninstall(req, resp) {
   const params = req.params;
-  //component setup behavior here initialize any external databases, bucket sets, etc.
+  //component uninstall behavior here, undo any steps done in the install service
   resp.success('Success');
 }

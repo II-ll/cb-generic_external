@@ -5,14 +5,16 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import singleSpaReact from "single-spa-react";
-import generic_external from "./generic_external";
+import GenericExternal from "./GenericExternal";
+import { ComponentsProps } from "../types";
 
-function generic_externalRoot(props) {
+
+function generic_externalRoot(props: ComponentsProps) {
   return (
     <AppProviders>
       <BrowserRouter basename={getBasePath()}>
         <Subscribe>
-          <generic_external {...props} />
+          <GenericExternal {...props} />
         </Subscribe>
       </BrowserRouter>
     </AppProviders>

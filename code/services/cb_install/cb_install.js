@@ -5,8 +5,17 @@
  */
 
 function cb_install(req, resp) {
-  const params = req.params;
-  const mfe_settings = params.mfe_settings;
-  //component install behavior here. Initialize an instance of the component for use
-  resp.success('Success');
+  try {
+    const item = JSON.parse(req.params);
+    const payload = {
+      operation: "create",
+      componentId: item.component_id,
+      entityId: item.entity_id,
+      settings: JSON.parse(item.mfe_settings || "{}"),
+    };
+    client.publish(COMPONENTS_UPDATE_TOPIC, JSON.stringify(payload), 2); //TODO: make sure this doesn't cause problems with test
+    resp.success("Success");
+  } catch (e) {
+    resp.error(e);
+  }
 }

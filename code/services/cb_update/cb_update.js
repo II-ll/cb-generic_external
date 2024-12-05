@@ -4,8 +4,18 @@
  * @param {CbServer.Resp} resp
  */
 
-function cb_update(req, resp) {
-  const params = req.params;
-  //component update behavior here. Allow the user to update an instance of the component
-  resp.success('Success');
+function cb_update(_, resp) {
+  try {
+    const item = JSON.parse(req.params);
+    const payload = {
+      operation: "update",
+      componentId: item.component_id,
+      entityId: item.entity_id,
+      settings: JSON.parse(item.mfe_settings || "{}"),
+    };
+    client.publish(COMPONENTS_UPDATE_TOPIC, JSON.stringify(payload), 2); //qos 2 to ensure delivery
+    resp.success("Success");
+  } catch (e) {
+    resp.error(e);
+  }
 }

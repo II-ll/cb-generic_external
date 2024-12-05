@@ -4,8 +4,6 @@
  * @param {CbServer.Resp} resp
  */
 
-function cb_teardown(req, resp) {
-  const params = req.params;
-  //component teardown behavior here. Undo any setup done in the setup service
+function cb_teardown(_, resp) {
   resp.success('Success');
 }

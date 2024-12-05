@@ -4,8 +4,6 @@
  * @param {CbServer.Resp} resp
  */
 
-function cb_setup(req, resp) {
-  const params = req.params;
-  //component setup behavior here initialize any external databases, bucket sets, etc.
+function cb_setup(_, resp) {
   resp.success('Success');
 }

@@ -4,7 +4,7 @@
  * @param {CbServer.Resp} resp
  */
 
-function cb_update(_, resp) {
+function cb_update(req, resp) {
   try {
     const item = JSON.parse(req.params);
     const payload = {

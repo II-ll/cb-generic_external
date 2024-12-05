@@ -4,7 +4,7 @@
  * @param {CbServer.Resp} resp
  */
 
-function cb_uninstall(_, resp) {
+function cb_uninstall(req, resp) {
   try {
     const item = JSON.parse(req.params);
     const payload = {

@@ -6,14 +6,15 @@
 
 function cb_install(req, resp) {
   try {
-    const item = JSON.parse(req.params);
+    const item = req.params;
     const payload = {
       operation: "create",
       componentId: item.component_id,
       entityId: item.entity_id,
-      settings: JSON.parse(item.mfe_settings || "{}"),
+      settings: { mfe_data: item.mfe_settings } || { mfe_data: {} },
     };
-    client.publish(COMPONENTS_UPDATE_TOPIC, JSON.stringify(payload), 2); //TODO: make sure this doesn't cause problems with test
+    var client = new MQTT.Client();
+    client.publish("_cb/components/generic_external/updates", JSON.stringify(payload), 2); //TODO: make sure this doesn't cause problems with test
     resp.success("Success");
   } catch (e) {
     resp.error(e);

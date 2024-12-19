@@ -6,13 +6,14 @@
 
 function cb_uninstall(req, resp) {
   try {
-    const item = JSON.parse(req.params);
+    const item = req.params;
     const payload = {
-      operation: item.id,
+      operation: "delete",
       componentId: "generic_external",
       entityId: item.entity_id,
     };
-    client.publish(COMPONENTS_UPDATE_TOPIC, JSON.stringify(payload), 2); //qos 2 to ensure delivery
+    var client = new MQTT.Client();
+    client.publish("_cb/components/generic_external/updates", JSON.stringify(payload), 2); //qos 2 to ensure delivery
     resp.success("Success");
   } catch (e) {
     resp.error(e);

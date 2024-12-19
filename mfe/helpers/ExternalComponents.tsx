@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import {
-  CircularProgress,
   Divider,
   FormControl,
   FormLabel,
@@ -11,9 +10,8 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Autocomplete } from "@material-ui/lab";
-import { Field, Form, Formik } from "formik";
+import { Field, Form, Formik, useFormikContext } from "formik";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
-import WarningIcon from "@material-ui/icons/Warning";
 import { ComponentsProps } from "../types";
 
 interface AttributeOption {
@@ -21,6 +19,53 @@ interface AttributeOption {
   attribute_label: string;
   attribute_name: string;
 }
+
+const RawDataIncomingTopicField = () => {
+  const { values, handleChange } = useFormikContext<any>();
+
+  return (
+    <FormControl fullWidth margin="normal">
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <FormLabel>
+          <Typography variant="body2">
+            <span style={{ fontWeight: "bold" }}>
+              Raw Data Incoming Topic
+            </span>
+          </Typography>
+        </FormLabel>
+        <Tooltip title="This is an optional field. The topic that the normalizer for this component will read data on to be filtered and preprocessed. If blank, it will use data from the default normalizer.">
+          <IconButton
+            size="small"
+            aria-label="help"
+            style={{ marginLeft: "4px" }}
+          >
+            <HelpOutlineIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </div>
+      <TextField
+        size="small"
+        name="rawDataIncomingTopic"
+        value={values.rawDataIncomingTopic}
+        onChange={handleChange}
+        variant="outlined"
+        fullWidth
+      />
+      {values.rawDataIncomingTopic !== "" && (
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px' }}>
+          <Typography variant="caption" color="error" style={{ marginRight: '4px' }}>
+            Warning: Custom Raw Data Topic Set.
+          </Typography>
+          <Tooltip title="The Generic External component by default filters data in from the default normalizer topic. If you use a custom Raw Data Topic, you will need to build a custom normalizer for your implementation.">
+            <IconButton size="small" aria-label="help">
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </div>
+      )}
+    </FormControl>
+  );
+};
 
 export default function ExternalComponents(props: ComponentsProps) {
   const { schema, component, setValues } = props;
@@ -54,6 +99,7 @@ export default function ExternalComponents(props: ComponentsProps) {
         return (
           <Form>
             <Grid container spacing={2}>
+              {/* Input Attributes */}
               <Grid item xs={12}>
                 <FormControl fullWidth margin="normal">
                   <div style={{ display: "flex", alignItems: "center" }}>
@@ -98,6 +144,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                 </FormControl>
               </Grid>
 
+              {/* Target Attributes */}
               <Grid item xs={12}>
                 <FormControl fullWidth margin="normal">
                   <div style={{ display: "flex", alignItems: "center" }}>
@@ -146,44 +193,12 @@ export default function ExternalComponents(props: ComponentsProps) {
                 <Divider />
               </Grid>
 
+              {/* Raw Data Incoming Topic */}
               <Grid item xs={12}>
-                <FormControl fullWidth margin="normal">
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <FormLabel>
-                      <Typography variant="body2">
-                        <span style={{ fontWeight: "bold" }}>
-                          Raw Data Incoming Topic
-                        </span>
-                      </Typography>
-                    </FormLabel>
-                    <Tooltip title="This is an optional field. The topic that the normalizer for this component will read data on to be filtered and preprocessed. If blank, it will use data from the default normalizer.">
-                      <IconButton
-                        size="small"
-                        aria-label="help"
-                        style={{ marginLeft: "4px" }}
-                      >
-                        <HelpOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    {values.rawDataIncomingTopic !== "" && (
-                      <Tooltip title="Warning: It is not recommended to set this unless you are writing a custom normalizer for this usage.">
-                        <WarningIcon
-                          color="action"
-                          style={{ marginLeft: "4px", color: "orange" }}
-                        />
-                      </Tooltip>
-                    )}
-                  </div>
-                  <Field
-                    size="small"
-                    name="rawDataIncomingTopic"
-                    component={TextField}
-                    variant="outlined"
-                    fullWidth
-                  />
-                </FormControl>
+                <RawDataIncomingTopicField />
               </Grid>
 
+              {/* Model Ingestion Topic */}
               <Grid item xs={12}>
                 <FormControl fullWidth margin="normal">
                   <div style={{ display: "flex", alignItems: "center" }}>
@@ -215,6 +230,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                 </FormControl>
               </Grid>
 
+              {/* Inference Topic */}
               <Grid item xs={12}>
                 <FormControl fullWidth margin="normal">
                   <div style={{ display: "flex", alignItems: "center" }}>

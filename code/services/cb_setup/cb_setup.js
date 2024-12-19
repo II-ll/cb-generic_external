@@ -1,9 +1,7 @@
 /**
- * @typedef {{prefix: string, entity_id: string, component_id: string, mfe_settings: Record<string, unknown>}} InstallParams
- * @param {CbServer.BasicReq & {params: InstallParams}} req
+ * @param {CbServer.BasicReq} _
  * @param {CbServer.Resp} resp
  */
-
 function cb_setup(_, resp) {
   resp.success('Success');
 }

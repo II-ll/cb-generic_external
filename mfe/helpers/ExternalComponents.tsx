@@ -132,7 +132,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                     value={values.schema}
                     options={attributeOptions}
                     onChange={(event, newValue) =>
-                      setFieldValue("inputAttributes", newValue)
+                      setFieldValue("schema", newValue)
                     }
                     getOptionSelected={(option, value) =>
                       option.uuid === value.uuid
@@ -177,7 +177,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                     value={values.settings.targetAttributes}
                     options={attributeOptions}
                     onChange={(event, newValue) =>
-                      setFieldValue("targetAttributes", newValue)
+                      setFieldValue("settings.targetAttributes", newValue)
                     }
                     getOptionSelected={(option, value) =>
                       option.uuid === value.uuid

@@ -43,9 +43,7 @@ const RawDataIncomingTopicField = () => {
       </div>
       <TextField
         size="small"
-        name="rawDataIncomingTopic"
-        value={values.rawDataIncomingTopic}
-        onChange={handleChange}
+        name="settings.rawDataIncomingTopic"
         variant="outlined"
         fullWidth
       />
@@ -85,19 +83,24 @@ export default function ExternalComponents(props: ComponentsProps) {
       initialValues={{
         schema: (component.settings.inputAttributes as AttributeOption[]) || [],
         settings: {
-           targetAttributes:
+          targetAttributes:
             (component.settings.targetAttributes as AttributeOption[]) || [],
           rawDataIncomingTopic:
             (component.settings.rawDataIncomingTopic as string) || "",
-          modelIngestionTopic: component.settings.modelIngestionTopic as string,
-          inferenceTopic: component.settings.inferenceTopic as string,
+          modelIngestionTopic: component.settings.modelIngestionTopic as string || "",
+          inferenceTopic: component.settings.inferenceTopic as string || "",
         },
       }}
-      onSubmit={() => {}}
+      // onSubmit={() => {}}
+      // put a console.log here to see the payload
+      onSubmit={(values, { setSubmitting }) => {
+        console.log("form submitted with payload: ", values);
+        setSubmitting(true);
+      }}
     >
       {({ values, setFieldValue }) => {
         useEffect(() => {
-          setValues((v) => ({ ...v, settings: values }));
+          setValues((v) => ({ ...v, ...values as unknown as ComponentsProps }));
         }, [values]);
 
         return (
@@ -128,7 +131,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                     multiple
                     size="small"
                     limitTags={6}
-                    id="input-attributes" 
+                    id="input-attributes"
                     value={values.schema}
                     options={attributeOptions}
                     onChange={(event, newValue) =>
@@ -225,8 +228,8 @@ export default function ExternalComponents(props: ComponentsProps) {
                   </div>
                   <Field
                     size="small"
-                    name="modelIngestionTopic"
-                    component={TextField}
+                    name="settings.modelIngestionTopic"
+                    as={TextField}
                     variant="outlined"
                     fullWidth
                     required
@@ -260,8 +263,8 @@ export default function ExternalComponents(props: ComponentsProps) {
                   </div>
                   <Field
                     size="small"
-                    name="inferenceTopic"
-                    component={TextField}
+                    name="settings.inferenceTopic"
+                    as={TextField}
                     variant="outlined"
                     fullWidth
                     required={values.settings.targetAttributes.length > 0}

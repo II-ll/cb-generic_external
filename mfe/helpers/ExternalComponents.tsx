@@ -28,9 +28,7 @@ const RawDataIncomingTopicField = () => {
       <div style={{ display: "flex", alignItems: "center" }}>
         <FormLabel>
           <Typography variant="body2">
-            <span style={{ fontWeight: "bold" }}>
-              Raw Data Incoming Topic
-            </span>
+            <span style={{ fontWeight: "bold" }}>Raw Data Incoming Topic</span>
           </Typography>
         </FormLabel>
         <Tooltip title="This is an optional field. The topic that the normalizer for this component will read data on to be filtered and preprocessed. If blank, it will use data from the default normalizer.">
@@ -52,8 +50,14 @@ const RawDataIncomingTopicField = () => {
         fullWidth
       />
       {values.rawDataIncomingTopic !== "" && (
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px' }}>
-          <Typography variant="caption" color="error" style={{ marginRight: '4px' }}>
+        <div
+          style={{ display: "flex", alignItems: "center", marginTop: "4px" }}
+        >
+          <Typography
+            variant="caption"
+            color="error"
+            style={{ marginRight: "4px" }}
+          >
             Warning: Custom Raw Data Topic Set.
           </Typography>
           <Tooltip title="The Generic External component by default filters data in from the default normalizer topic. If you use a custom Raw Data Topic, you will need to build a custom normalizer for your implementation.">
@@ -79,15 +83,15 @@ export default function ExternalComponents(props: ComponentsProps) {
   return (
     <Formik
       initialValues={{
-        inputAttributes:
-          (component.settings.inputAttributes as AttributeOption[]) || [],
-        targetAttributes:
-          (component.settings.targetAttributes as AttributeOption[]) || [],
-        rawDataIncomingTopic:
-          (component.settings.rawDataIncomingTopic as string) || "",
-        modelIngestionTopic:
-          (component.settings.modelIngestionTopic as string) || "",
-        inferenceTopic: (component.settings.inferenceTopic as string) || "",
+        schema: (component.settings.inputAttributes as AttributeOption[]) || [],
+        settings: {
+           targetAttributes:
+            (component.settings.targetAttributes as AttributeOption[]) || [],
+          rawDataIncomingTopic:
+            (component.settings.rawDataIncomingTopic as string) || "",
+          modelIngestionTopic: component.settings.modelIngestionTopic as string,
+          inferenceTopic: component.settings.inferenceTopic as string,
+        },
       }}
       onSubmit={() => {}}
     >
@@ -124,8 +128,8 @@ export default function ExternalComponents(props: ComponentsProps) {
                     multiple
                     size="small"
                     limitTags={6}
-                    id="input-attributes"
-                    value={values.inputAttributes}
+                    id="input-attributes" 
+                    value={values.schema}
                     options={attributeOptions}
                     onChange={(event, newValue) =>
                       setFieldValue("inputAttributes", newValue)
@@ -170,7 +174,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                     size="small"
                     limitTags={6}
                     id="target-attributes"
-                    value={values.targetAttributes}
+                    value={values.settings.targetAttributes}
                     options={attributeOptions}
                     onChange={(event, newValue) =>
                       setFieldValue("targetAttributes", newValue)
@@ -238,7 +242,9 @@ export default function ExternalComponents(props: ComponentsProps) {
                       <Typography variant="body2">
                         <span style={{ fontWeight: "bold" }}>
                           Inference Topic
-                          {values.targetAttributes.length > 0 ? "*" : ""}
+                          {values.settings.targetAttributes.length > 0
+                            ? "*"
+                            : ""}
                         </span>
                       </Typography>
                     </FormLabel>
@@ -258,7 +264,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                     component={TextField}
                     variant="outlined"
                     fullWidth
-                    required={values.targetAttributes.length > 0}
+                    required={values.settings.targetAttributes.length > 0}
                   />
                 </FormControl>
               </Grid>

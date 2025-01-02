@@ -1,11 +1,19 @@
 /**
  * @typedef {Object} ComponentSettings
  * @property {Object} mfe_data
- * @property {Array<string>} mfe_data.input_attributes
- * @property {Array<string>} mfe_data.target_attributes
- * @property {string} mfe_data.raw_data_incoming_topic
- * @property {string} mfe_data.model_ingestion_topic
- * @property {string} mfe_data.inference_topic
+ * @property {Array<Attribute>} mfe_data.features
+ * @property {Object} mfe_data.model_meta
+ * @property {Array<Attribute>} mfe_data.model_meta.targetAttributes
+ * @property {string} mfe_data.model_meta.rawDataIncomingTopic
+ * @property {string} mfe_data.model_meta.modelIngestionTopic
+ * @property {string} mfe_data.model_meta.inferenceTopic
+ */
+
+/**
+ * @typedef {Object} Attribute
+ * @property {string} attribute_name
+ * @property {string} attribute_label
+ * @property {string} uuid
  */
 
 /**
@@ -58,14 +66,14 @@
 function cb_normalizerGenericMQTT(_req, resp) {
   var client = new MQTT.Client();
   var logger = new Logger({
-    name: 'cb_normalizerGenericMQTT',
+    name: "cb_normalizerGenericMQTT",
     logSetting: LogLevels.INFO,
   });
 
   /** @type {Object.<string, ComponentData>} */
   var componentDataMap = {};
 
-  var COMPONENTS_UPDATE_TOPIC = '_cb/components/generic_external/updates';
+  var COMPONENTS_UPDATE_TOPIC = "_cb/components/generic_external/updates";
 
   /**
    * @param {Array<{entityId: string, settings: ComponentSettings}>} componentsData
@@ -86,12 +94,16 @@ function cb_normalizerGenericMQTT(_req, resp) {
 
     Object.keys(componentDataMap).forEach(function (key) {
       var component = componentDataMap[key];
-      if (component.settings.mfe_data.raw_data_incoming_topic) {
-        topicsToSubscribe.push(component.settings.mfe_data.raw_data_incoming_topic);
+      if (component.settings.mfe_data.model_meta.rawDataIncomingTopic) {
+        topicsToSubscribe.push(
+          component.settings.mfe_data.model_meta.rawDataIncomingTopic
+        );
       } else {
         hasEmptyTopic = true;
       }
-      topicsToSubscribe.push(component.settings.mfe_data.inference_topic);
+      topicsToSubscribe.push(
+        component.settings.mfe_data.model_meta.inferenceTopic
+      );
     });
 
     if (hasEmptyTopic) {
@@ -103,10 +115,14 @@ function cb_normalizerGenericMQTT(_req, resp) {
       client
         .subscribe(topic, processMessage)
         .then(function () {
-          logger.publishLogWithMQTTLib(client, LogLevels.DEBUG, 'Subscribed to topic: ' + topic);
+          logger.publishLogWithMQTTLib(
+            client,
+            LogLevels.DEBUG,
+            "Subscribed to topic: " + topic
+          );
         })
         .catch(function (error) {
-          console.error('Failed to subscribe to topic:', topic, error);
+          console.error("Failed to subscribe to topic:", topic, error);
         });
     });
   }
@@ -119,33 +135,45 @@ function cb_normalizerGenericMQTT(_req, resp) {
     try {
       var rawPayload = JSON.parse(message.payload);
       if (!Array.isArray(rawPayload)) {
-        rawPayload = [rawPayload]
+        rawPayload = [rawPayload];
       }
-
 
       if (topic === COMPONENTS_UPDATE_TOPIC) {
         handleComponentUpdate(rawPayload[0]);
         return;
       }
-      rawPayload.forEach(function (/** @type {{ type: string; id: string; last_updated: string; groupIds: string[]; tags: string[]; latitude: string; longitude: string; custom_data: { [x: string]: string | number | boolean | object; }; }} */ payload) {
-        if (payload.type && componentDataMap[payload.type] && componentDataMap[payload.type].settings && componentDataMap[payload.type].settings.mfe_data) {
+      rawPayload.forEach(function (
+        /** @type {{ type: string; id: string; last_updated: string; groupIds: string[]; tags: string[]; latitude: string; longitude: string; custom_data: { [x: string]: string | number | boolean | object; }; }} */ payload
+      ) {
+        if (
+          payload.type &&
+          componentDataMap[payload.type] &&
+          componentDataMap[payload.type].settings &&
+          componentDataMap[payload.type].settings.mfe_data
+        ) {
           if (
-            componentDataMap[payload.type].settings.mfe_data.raw_data_incoming_topic === topic ||
-            topic === Topics.DefaultNormalizer()
+            componentDataMap[payload.type].settings.mfe_data.model_meta
+              .rawDataIncomingTopic === topic ||
+            (topic === Topics.DefaultNormalizer() &&
+              !componentDataMap[payload.type].settings.mfe_data.model_meta
+                .rawDataIncomingTopic)
           ) {
             handleAssetData(payload);
-          } else if (componentDataMap[payload.type].settings.mfe_data.inference_topic === topic) {
+          } else if (
+            componentDataMap[payload.type].settings.mfe_data.model_meta
+              .inferenceTopic === topic
+          ) {
             handleInferenceData(payload);
           } else {
             // component not enabled for asset type
             return;
           }
         } else {
-          console.error('Unknown message format:', payload);
+          console.error("Unknown message format:", payload);
         }
       });
     } catch (error) {
-      console.error('Error processing message:', error);
+      console.error("Error processing message:", error);
     }
   }
 
@@ -156,8 +184,13 @@ function cb_normalizerGenericMQTT(_req, resp) {
     var component = componentDataMap[assetData.type];
     if (!component) return;
 
-    var input_attributes = component.settings.mfe_data.input_attributes;
-    var model_ingestion_topic = component.settings.mfe_data.model_ingestion_topic;
+    var input_attributes = component.settings.mfe_data.features.map(function (
+      feature
+    ) {
+      return feature.attribute_name;
+    });
+    var model_ingestion_topic =
+      component.settings.mfe_data.model_meta.modelIngestionTopic;
     var commonAttributes = input_attributes.filter(function (attr) {
       return assetData.custom_data.hasOwnProperty(attr);
     });
@@ -174,9 +207,11 @@ function cb_normalizerGenericMQTT(_req, resp) {
         condensedPayload.input_attributes[attr] = assetData.custom_data[attr];
       });
 
-      client.publish(model_ingestion_topic, JSON.stringify(condensedPayload)).catch(function (error) {
-        console.error('Failed to publish condensed payload:', error);
-      });
+      client
+        .publish(model_ingestion_topic, JSON.stringify(condensedPayload))
+        .catch(function (error) {
+          console.error("Failed to publish condensed payload:", error);
+        });
     }
   }
 
@@ -187,7 +222,12 @@ function cb_normalizerGenericMQTT(_req, resp) {
   function handleInferenceData(inferenceData) {
     var component = componentDataMap[inferenceData.type];
     if (!component) return;
-    var target_attributes = component.settings.mfe_data.target_attributes;
+    var target_attributes =
+      component.settings.mfe_data.model_meta.targetAttributes.map(function (
+        feature
+      ) {
+        return feature.attribute_name;
+      });
     var commonAttributes = target_attributes.filter(function (attr) {
       return inferenceData.custom_data.hasOwnProperty(attr);
     });
@@ -201,20 +241,20 @@ function cb_normalizerGenericMQTT(_req, resp) {
 
     client
       .publish(
-      Topics.AssetLocStatusHistory(inferenceData.id),
-      JSON.stringify({
-        id: inferenceData.id,
-        type: inferenceData.type,
-        group_ids: inferenceData.groupIds || ['default'], //then get current time
-        last_updated: new Date().toISOString(),
-        tags: inferenceData.tags || [],
-        custom_data,
-        //latitude: 7,
-        //longitude: 7,
-      })
+        Topics.AssetLocStatusHistory(inferenceData.id),
+        JSON.stringify({
+          id: inferenceData.id,
+          type: inferenceData.type,
+          group_ids: inferenceData.groupIds || ["default"], //then get current time
+          last_updated: new Date().toISOString(),
+          tags: inferenceData.tags || [],
+          custom_data,
+          //latitude: 7,
+          //longitude: 7,
+        })
       )
       .catch(function (error) {
-        console.error('Failed to publish inference data:', error);
+        console.error("Failed to publish inference data:", error);
       });
   }
 
@@ -227,16 +267,16 @@ function cb_normalizerGenericMQTT(_req, resp) {
     var entityId = updateData.entityId;
     var settings = updateData.settings;
 
-    if (componentId !== 'generic_external') {
+    if (componentId !== "generic_external") {
       return;
     }
 
     switch (operation) {
-      case 'create':
-      case 'update':
+      case "create":
+      case "update":
         componentDataMap[entityId] = { settings };
         break;
-      case 'delete':
+      case "delete":
         delete componentDataMap[entityId];
         break;
     }
@@ -247,30 +287,39 @@ function cb_normalizerGenericMQTT(_req, resp) {
   // Initialize the service
   function initialize() {
     ClearBladeAsync.Database()
-      .query('SELECT entity_id, settings FROM ' + CollectionName.COMPONENTS + " WHERE id = 'generic_external'")
+      .query(
+        "SELECT entity_id, settings FROM " +
+          CollectionName.COMPONENTS +
+          " WHERE id = 'generic_external'"
+      )
       .then(
-      /** 
-       * @param {unknown[]} results 
-       * @returns {void}
-       */
-      function (results) {
-        /** @type {ComponentCollectionRow[]} */
-        var typedResults = /** @type {ComponentCollectionRow[]} */ (results);
-        var componentsData = typedResults.map(function (row) {
-          return {
-            entityId: row.entity_id,
-            settings: row.settings,
-          };
-        });
-        updateComponentData(componentsData);
-      })
+        /**
+         * @param {unknown[]} results
+         * @returns {void}
+         */
+        function (results) {
+          /** @type {ComponentCollectionRow[]} */
+          var typedResults = /** @type {ComponentCollectionRow[]} */ (results);
+          var componentsData = typedResults.map(function (row) {
+            return {
+              entityId: row.entity_id,
+              settings: row.settings,
+            };
+          });
+          updateComponentData(componentsData);
+        }
+      )
       .catch(function (error) {
-        console.error('Failed to query COMPONENTS collection:', error);
-        resp.error('Failed to initialize the service');
+        console.error("Failed to query COMPONENTS collection:", error);
+        resp.error("Failed to initialize the service");
       });
   }
 
   initialize();
 
-  logger.publishLogWithMQTTLib(client, LogLevels.INFO, 'cb_normalizerGenericMQTT service started');
+  logger.publishLogWithMQTTLib(
+    client,
+    LogLevels.INFO,
+    "cb_normalizerGenericMQTT service started"
+  );
 }

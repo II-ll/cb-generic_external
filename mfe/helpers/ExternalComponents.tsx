@@ -46,8 +46,10 @@ const RawDataIncomingTopicField = () => {
         name="settings.rawDataIncomingTopic"
         variant="outlined"
         fullWidth
+        value={values.settings.rawDataIncomingTopic}
+        onChange={handleChange}
       />
-      {values.rawDataIncomingTopic !== "" && (
+      {values.settings.rawDataIncomingTopic !== "" && (
         <div
           style={{ display: "flex", alignItems: "center", marginTop: "4px" }}
         >
@@ -91,8 +93,6 @@ export default function ExternalComponents(props: ComponentsProps) {
           inferenceTopic: component.settings.inferenceTopic as string || "",
         },
       }}
-      // onSubmit={() => {}}
-      // put a console.log here to see the payload
       onSubmit={(values, { setSubmitting }) => {
         console.log("form submitted with payload: ", values);
         setSubmitting(true);

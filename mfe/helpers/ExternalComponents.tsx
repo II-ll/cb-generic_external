@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Autocomplete } from "@material-ui/lab";
-import { Field, Form, Formik, useFormikContext } from "formik";
+import { Field, Form, Formik, useFormikContext, FormikErrors } from "formik";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import { ComponentsProps } from "../types";
 
@@ -18,6 +18,16 @@ interface AttributeOption {
   uuid: string;
   attribute_label: string;
   attribute_name: string;
+}
+
+interface ValuesObject {
+    schema: AttributeOption[];
+    settings: {
+        targetAttributes: AttributeOption[];
+        rawDataIncomingTopic: string;
+        modelIngestionTopic: string;
+        inferenceTopic: string;
+    };
 }
 
 const RawDataIncomingTopicField = () => {
@@ -71,6 +81,30 @@ const RawDataIncomingTopicField = () => {
   );
 };
 
+const validate = (values: ValuesObject): {isValid: boolean; errors: FormikErrors<ValuesObject> } => {
+  const errors: FormikErrors<ValuesObject> = {};
+  let isValid = false;
+
+  if (!values.schema || values.schema.length === 0) {
+    errors.schema = "Input Attributes are required";
+    isValid = true;
+  }
+
+  if (!values.settings.modelIngestionTopic) {
+    errors.settings = errors.settings || {};
+    errors.settings.modelIngestionTopic = "Model Ingestion Topic is required";
+    isValid = true;
+  }
+
+  if (values.settings.targetAttributes.length > 0 && !values.settings.inferenceTopic) {
+    errors.settings = errors.settings || {};
+    errors.settings.inferenceTopic = "Inference Topic is required when Target Attributes are selected";
+    isValid = true;
+  }
+
+  return {isValid, errors};
+};
+
 export default function ExternalComponents(props: ComponentsProps) {
   const { schema, component, setValues } = props;
 
@@ -93,6 +127,7 @@ export default function ExternalComponents(props: ComponentsProps) {
           inferenceTopic: component.settings.inferenceTopic as string || "",
         },
       }}
+      validate={validate}
       onSubmit={(values, { setSubmitting }) => {
         console.log("form submitted with payload: ", values);
         setSubmitting(true);
@@ -216,7 +251,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                         </span>
                       </Typography>
                     </FormLabel>
-                    <Tooltip title="This is a required field. The topic we will publish to for you to subscribe to, to collect data for training and inference.">
+                    <Tooltip title="This is a required field. The topic we will publish to for you to subscribe to, to collect data for training and inference. If left blank, your model ingestion topic will default to '{AssetTypeID}/ingest'.">
                       <IconButton
                         size="small"
                         aria-label="help"
@@ -251,7 +286,7 @@ export default function ExternalComponents(props: ComponentsProps) {
                         </span>
                       </Typography>
                     </FormLabel>
-                    <Tooltip title="This is required if target attributes are selected. The topic you can publish inference results to populate your target attribute(s).">
+                    <Tooltip title="This is required if target attributes are selected. The topic you can publish inference results to populate your target attribute(s). If left blank when target attributes are selected, your inference topic will default to '{AssetTypeID}/infer'.">
                       <IconButton
                         size="small"
                         aria-label="help"

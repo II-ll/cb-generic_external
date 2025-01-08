@@ -26,8 +26,7 @@ const lifecycles = singleSpaReact({
   ReactDOM,
   rootComponent: generic_externalRoot,
   errorBoundary(err, info, props) {
-    // Customize the root error boundary for your microfrontend here.
-    return null;
+    return {err, info, props, type: "error", key: "generic_external"};
   },
 });
 
